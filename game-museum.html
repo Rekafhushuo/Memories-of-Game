@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memories of Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-card-hover: #22222e;
+            --accent-gold: #d4af37;
+            --accent-gold-light: #e8c547;
+            --accent-red: #c73e3a;
+            --accent-blue: #3a7bc7;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a8;
+            --text-muted: #606068;
+            --border-color: #2a2a36;
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.4);
+            --shadow-glow: 0 0 30px rgba(212, 175, 55, 0.15);
+            --theme-color: #d4af37;
+            --theme-gradient-start: rgba(212, 175, 55, 0.05);
+            --theme-gradient-end: rgba(42, 42, 54, 0.2);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
+                radial-gradient(ellipse at top, var(--theme-gradient-start) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, var(--theme-gradient-end) 0%, transparent 50%);
+            background-blend-mode: soft-light, normal, normal;
+            transition: background 0.6s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .header .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .header .stat-item {
+            text-align: center;
+        }
+
+        .header .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .header .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 年份筛选器 */
+        .year-filter {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .filter-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-gold);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+            border-color: var(--accent-gold);
+            color: #0a0a0f;
+            font-weight: 600;
+        }
+
+        .year-section {
+            display: none;
+            margin-bottom: 80px;
+        }
+
+        .year-section.visible {
+            display: block;
+        }
+
+        .year-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .year-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--theme-color);
+            opacity: 0.3;
+            line-height: 1;
+        }
+
+        .year-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .year-count {
+            margin-left: auto;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5), var(--shadow-glow);
+            border-color: var(--theme-color);
+        }
+
+        .game-cover {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-cover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(10,10,15,0.9) 0%, transparent 50%);
+        }
+
+        .game-cover .fallback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: var(--text-muted);
+            z-index: 1;
+        }
+
+        .game-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover .game-cover img {
+            transform: scale(1.05);
+        }
+
+        .game-info {
+            padding: 20px;
+        }
+
+        .game-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .game-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .game-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .game-meta-item i {
+            font-size: 0.8rem;
+            color: var(--theme-color);
+        }
+
+        .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .game-tag {
+            padding: 4px 10px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+        }
+
+        /* 年度游戏特殊样式 */
+        .hero-section {
+            margin-bottom: 30px;
+        }
+
+        .hero-game {
+            display: flex;
+            flex-direction: row;
+            grid-column: span 1;
+            position: relative;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border: 2px solid var(--theme-color);
+            overflow: hidden;
+        }
+
+        .hero-game .game-cover {
+            width: 70%;
+            aspect-ratio: 16/9;
+            min-width: auto;
+        }
+
+        .hero-game .game-info {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            min-width: 180px;
+        }
+
+        .hero-game .game-name {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .hero-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-light));
+            color: #0a0a0f;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .hero-game .game-meta {
+            margin-bottom: 12px;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .hero-game .game-meta-item {
+            font-size: 0.85rem;
+        }
+
+        .hero-game .game-tags {
+            gap: 6px;
+        }
+
+        .hero-game .game-tag {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-game {
+                flex-direction: column;
+            }
+
+            .hero-game .game-cover {
+                width: 100%;
+                aspect-ratio: 16/9;
+            }
+
+            .hero-game .game-info {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .hero-game .game-name {
+                font-size: 1.1rem;
+            }
+
+            .hero-game .game-meta {
+                flex-direction: row;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header .stats {
+                gap: 20px;
+            }
+            
+            .year-number {
+                font-size: 2rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 16px;
+            }
+            
+            .hero-game {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Memories of Game</h1>
+            <p class="subtitle">记录每一段游戏旅程</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalGames">0</div>
+                    <div class="stat-label">游戏总数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalYears">0</div>
+                    <div class="stat-label">年份跨度</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 年份筛选按钮由 JS 根据 gamesData 动态生成 -->
+        <div class="year-filter" id="yearFilter"></div>
+
+        <main id="gameMuseum">
+            <!-- 游戏内容将由JavaScript动态生成 -->
+        </main>
+    </div>
+
+    <script src="games-data.js"></script>
+    <script>
+        // gamesData 和 yearThemes 已从 games-data.js 加载
+        // 如需新增年份或游戏，请直接编辑 games-data.js 文件
+
+        // 生成年度游戏HTML（横版）
+        function createHeroCard(game, year) {
+            const coverPath = `covers/${game.file}`;
+            const theme = yearThemes[year];
+            
+            return `
+                <div class="game-card hero-section" data-year="${year}">
+                    <div class="game-card hero-game">
+                        <span class="hero-badge"><i class="fas fa-crown"></i> Best of the Year</span>
+                        <div class="game-cover" style="background: linear-gradient(135deg, ${theme.color}30, ${theme.color}15);">
+                            <img src="${coverPath}" alt="${game.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span class="fallback" style="display:none;"><i class="fas fa-gamepad"></i></span>
+                        </div>
+                        <div class="game-info">
+                            <h3 class="game-name">${game.name}</h3>
+                            <div class="game-meta">
+                                <div class="game-meta-item">
+                                    <i class="fas fa-building"></i>
+                                    <span>${game.developer}</span>
+                                </div>
+                                <div class="game-meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>${game.date}</span>
+                                </div>
+                            </div>
+                            <div class="game-tags">
+                                ${game.tags.map(tag => `<span class="game-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 生成普通游戏卡片HTML
+        function createGameCard(game, year) {
+            const coverPath = `covers/${game.file}`;
+            
+            return `
+                <div class="game-card" data-year="${year}">
+                    <div class="game-cover" style="background: linear-gradient(135deg, ${yearThemes[year].color}20, ${yearThemes[year].color}10);">
+                        <img src="${coverPath}" alt="${game.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <span class="fallback" style="display:none;"><i class="fas fa-gamepad"></i></span>
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-name">${game.name}</h3>
+                        <div class="game-meta">
+                            <div class="game-meta-item">
+                                <i class="fas fa-building"></i>
+                                <span>${game.developer}</span>
+                            </div>
+                            <div class="game-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${game.date}</span>
+                            </div>
+                        </div>
+                        <div class="game-tags">
+                            ${game.tags.map(tag => `<span class="game-tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 渲染博物馆
+        function renderMuseum() {
+            const museum = document.getElementById('gameMuseum');
+            let totalGames = 0;
+            const years = Object.keys(gamesData).sort((a, b) => b - a);
+
+            years.forEach(year => {
+                const games = gamesData[year];
+                totalGames += games.length;
+                const theme = yearThemes[year];
+
+                const section = document.createElement('section');
+                section.className = 'year-section visible';
+                section.dataset.year = year;
+                
+                // 分离年度游戏和普通游戏
+                const heroGame = games.find(g => g.hero);
+                const normalGames = games.filter(g => !g.hero);
+                
+                let heroHTML = '';
+                if (heroGame) {
+                    heroHTML = createHeroCard(heroGame, year);
+                }
+                
+                section.innerHTML = `
+                    <div class="year-header">
+                        <span class="year-number">${year}</span>
+                        <span class="year-title">年度游戏</span>
+                        <span class="year-count">${games.length} 款游戏</span>
+                    </div>
+                    ${heroHTML}
+                    <div class="games-grid">
+                        ${normalGames.map(game => createGameCard(game, year)).join('')}
+                    </div>
+                `;
+                museum.appendChild(section);
+            });
+
+            // 更新统计
+            document.getElementById('totalGames').textContent = totalGames;
+            document.getElementById('totalYears').textContent = years.length;
+        }
+
+        // 年份筛选功能（按钮根据 gamesData 中的年份自动生成）
+        function initYearFilter() {
+            const container = document.getElementById('yearFilter');
+            const years = Object.keys(gamesData).sort((a, b) => b - a);
+
+            // 动态生成按钮：全部 + 各年份
+            const allBtn = document.createElement('button');
+            allBtn.className = 'filter-btn active';
+            allBtn.dataset.year = 'all';
+            allBtn.textContent = '全部';
+            container.appendChild(allBtn);
+
+            years.forEach(year => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.dataset.year = year;
+                btn.textContent = year;
+                container.appendChild(btn);
+            });
+
+            // 绑定点击事件
+            const filterBtns = container.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const selectedYear = btn.dataset.year;
+                    document.querySelectorAll('.year-section').forEach(section => {
+                        if (selectedYear === 'all' || section.dataset.year === selectedYear) {
+                            section.classList.add('visible');
+                        } else {
+                            section.classList.remove('visible');
+                        }
+                    });
+                });
+            });
+        }
+
+        // 页面加载完成后渲染
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMuseum();
+            initYearFilter();
+        });
+    </script>
+</body>
+</html>
